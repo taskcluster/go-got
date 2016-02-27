@@ -2,7 +2,6 @@ package got
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -56,7 +55,7 @@ var DefaultClient = &http.Client{
 //  - Max 5 retries,
 //  - Exponential back-off: 100, 200, 400, 800 ms with 25% randomization
 //  - Retry any 5xx error,
-//  - ErrRespnseTooLarge if response body is larger than 10 MiB,
+//  - ErrResponseTooLarge if response body is larger than 10 MiB,
 //  - Timeout at 30 seconds,
 //
 // Notice, this different from the defaults you will get with a zero-value
@@ -168,9 +167,9 @@ func (r *Request) Send() (*Response, error) {
 		}
 
 		// Read the body
-		body, err = readBody(resp, r.MaxSize)
+		body, err = readAtmost(resp.Body, r.MaxSize)
 		if err != nil {
-			if attempts <= r.Retries && err != ErrRespnseTooLarge {
+			if attempts <= r.Retries && err != ErrResponseTooLarge {
 				goto retry
 			}
 		}
@@ -204,31 +203,4 @@ func (r *Request) Send() (*Response, error) {
 		}
 		time.Sleep(delay)
 	}
-}
-
-func readBody(resp *http.Response, maxSize int64) ([]byte, error) {
-	if resp.Body == nil {
-		return nil, nil
-	}
-	// Close the body no matter what happens
-	defer resp.Body.Close()
-
-	// If r.maxSize is zero or less read the entire body regardless of length
-	if maxSize <= 0 {
-		return ioutil.ReadAll(resp.Body)
-	}
-
-	// Read at-most maxSize from body and check that we read it all
-	reader := limitedReader{
-		reader:   resp.Body,
-		maxBytes: maxSize,
-	}
-	body, err := ioutil.ReadAll(&reader)
-	if err != nil {
-		return nil, err
-	}
-	if !reader.ReachedEOF() {
-		return nil, ErrRespnseTooLarge
-	}
-	return body, nil
 }

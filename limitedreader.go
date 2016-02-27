@@ -1,6 +1,9 @@
 package got
 
-import "io"
+import (
+	"io"
+	"io/ioutil"
+)
 
 // A simple limitedReader similar to io.LimitReader that also let's us know
 // if we reached EOF
@@ -25,4 +28,33 @@ func (l *limitedReader) Read(p []byte) (int, error) {
 
 func (l *limitedReader) ReachedEOF() bool {
 	return l.lastError == io.EOF
+}
+
+// Simple function that will read at-most maxSize and return an error if we
+// didn't reach EOF.
+func readAtmost(r io.ReadCloser, maxSize int64) ([]byte, error) {
+	if r == nil {
+		return nil, nil
+	}
+	// Close the reader no matter what happens
+	defer r.Close()
+
+	// If r.maxSize is zero or less read the entire body regardless of length
+	if maxSize <= 0 {
+		return ioutil.ReadAll(r)
+	}
+
+	// Read at-most maxSize from body and check that we read it all
+	reader := limitedReader{
+		reader:   r,
+		maxBytes: maxSize,
+	}
+	body, err := ioutil.ReadAll(&reader)
+	if err != nil {
+		return nil, err
+	}
+	if !reader.ReachedEOF() {
+		return nil, ErrResponseTooLarge
+	}
+	return body, nil
 }
