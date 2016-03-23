@@ -19,4 +19,4 @@ func (e BadResponseCodeError) Error() string {
 
 // ErrResponseTooLarge is used to indicate that the response was larger than
 // the safety limit at MaxSize (defined the request)
-var ErrResponseTooLarge = errors.New("Response is larger than MaxSize")
+var ErrResponseTooLarge = errors.New("Response body is larger than MaxSize")
