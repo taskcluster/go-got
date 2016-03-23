@@ -2,6 +2,7 @@ package got
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"time"
 )
@@ -77,12 +78,12 @@ func New() *Got {
 }
 
 // NewRequest returns a new request with settings from Got
-func (g *Got) NewRequest(Method string, URL string, Body []byte) *Request {
+func (g *Got) NewRequest(method string, url string, body []byte) *Request {
 	return &Request{
 		Got:    *g,
-		Method: Method,
-		URL:    URL,
-		Body:   Body,
+		Method: method,
+		URL:    url,
+		Body:   body,
 	}
 }
 
@@ -118,6 +119,13 @@ func DefaultIsTransient(response BadResponseCodeError) bool {
 
 // Send will execute the HTTP request
 func (r *Request) Send() (*Response, error) {
+	// Sanity check to avoid people violating some sane REST restrictions
+	// According to the spec a body may be present, but servers MUST ignore it.
+	// It's safer to forbid the body completely to avoid bugs.
+	if r.Body != nil && (r.Method == "HEAD" || r.Method == "GET" || r.Method == "DELETE") {
+		return nil, errors.New("HEAD, GET and DELETE request should not carry a body")
+	}
+
 	// Get an http.Client (fallback to default)
 	c := r.Client
 	if c == nil {
@@ -191,7 +199,7 @@ func (r *Request) Send() (*Response, error) {
 			return nil, err
 		}
 
-		return &response, nil
+		return &response, err
 	retry:
 		// Sleep and take another iteration of the loop
 		delay := backoff.Delay(attempts)

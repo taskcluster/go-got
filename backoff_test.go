@@ -1,16 +1,9 @@
 package got
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
-
-func assert(condition bool, a ...interface{}) {
-	if !condition {
-		panic(fmt.Sprint(a...))
-	}
-}
 
 func TestDefaultBackOff(t *testing.T) {
 	b := DefaultBackOff
