@@ -1,6 +1,7 @@
 package got
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -52,6 +53,37 @@ func TestPost(t *testing.T) {
 
 	g := New()
 	req := g.NewRequest("POST", server.URL, []byte("Hello World"))
+	res, err := req.Send()
+	nilOrPanic(err, "Test request failed")
+	assert(string(res.Body) == "Hello back", "Wrong body recieved!")
+	assert(res.StatusCode == 200, "non 200")
+	assert(res.Attempts == 1, "More than one attempt")
+}
+
+func TestPostJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert(r.Method == "POST", "Expected POST method")
+		body, err := ioutil.ReadAll(r.Body)
+		nilOrPanic(err, "Failed to read body")
+		var s string
+		if err := json.Unmarshal(body, &s); err != nil {
+			panic("Failed to parse JSON")
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			panic("Wrong content-type")
+		}
+		assert(s == "Hello World", "Wrong body")
+		w.WriteHeader(200)
+		w.Write([]byte("Hello back"))
+	}))
+	defer server.Close()
+
+	g := New()
+	req := g.NewRequest("POST", server.URL, nil)
+	err := req.JSON("Hello World")
+	if err != nil {
+		panic("Failed to render JSON")
+	}
 	res, err := req.Send()
 	nilOrPanic(err, "Test request failed")
 	assert(string(res.Body) == "Hello back", "Wrong body recieved!")
