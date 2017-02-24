@@ -2,6 +2,7 @@ package got
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -31,6 +32,7 @@ type Request struct {
 	URL    string
 	Header http.Header
 	Body   []byte
+	context.Context
 }
 
 // A Response as received
@@ -120,11 +122,22 @@ func DefaultIsTransient(response BadResponseCodeError) bool {
 
 // Send will execute the HTTP request
 func (r *Request) Send() (*Response, error) {
+	// Use background context, if not given one
+	ctx := r.Context
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	// Sanity check to avoid people violating some sane REST restrictions
 	// According to the spec a body may be present, but servers MUST ignore it.
 	// It's safer to forbid the body completely to avoid bugs.
 	if r.Body != nil && (r.Method == "HEAD" || r.Method == "GET" || r.Method == "DELETE") {
 		return nil, errors.New("HEAD, GET and DELETE request should not carry a body")
+	}
+
+	// Check that context isn't done
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
 
 	// Get an http.Client (fallback to default)
@@ -167,8 +180,11 @@ func (r *Request) Send() (*Response, error) {
 		}
 
 		// Do a request and ensure the body is closed
-		resp, err = c.Do(req)
+		resp, err = c.Do(req.WithContext(ctx))
 		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
 			if attempts <= r.Retries {
 				goto retry
 			}
@@ -178,6 +194,9 @@ func (r *Request) Send() (*Response, error) {
 		// Read the body
 		body, err = readAtmost(resp.Body, r.MaxSize)
 		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
 			if attempts <= r.Retries && err != ErrResponseTooLarge {
 				goto retry
 			}
@@ -210,6 +229,10 @@ func (r *Request) Send() (*Response, error) {
 				"' with delay: ", delay,
 			)
 		}
-		time.Sleep(delay)
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(delay):
+		}
 	}
 }

@@ -1,12 +1,14 @@
 package got
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func fmtPanic(a ...interface{}) {
@@ -170,4 +172,23 @@ func TestMaxSizeTooBig(t *testing.T) {
 	res, err := req.Send()
 	assert(err == ErrResponseTooLarge, "Expected ErrResponseTooLarge")
 	assert(res.Body == nil, "Expected nil body")
+}
+
+func TestGetWithContext(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert(r.Method == "GET", "Expected GET method")
+		w.WriteHeader(200)
+		w.Write([]byte("Hello back"))
+		time.Sleep(250 * time.Millisecond)
+	}))
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	g := New()
+	req := g.NewRequest("GET", server.URL, nil)
+	req.Context = ctx
+	_, err := req.Send()
+	assert(err == context.DeadlineExceeded, "Expected DeadlineExceeded")
 }
