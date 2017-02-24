@@ -35,7 +35,7 @@ func TestGet(t *testing.T) {
 	req := g.NewRequest("GET", server.URL, nil)
 	res, err := req.Send()
 	nilOrPanic(err, "Test request failed")
-	assert(string(res.Body) == "Hello back", "Wrong body recieved!")
+	assert(string(res.Body) == "Hello back", "Wrong body received!")
 	assert(res.StatusCode == 200, "non 200")
 	assert(res.Attempts == 1, "More than one attempt")
 }
@@ -55,7 +55,7 @@ func TestPost(t *testing.T) {
 	req := g.NewRequest("POST", server.URL, []byte("Hello World"))
 	res, err := req.Send()
 	nilOrPanic(err, "Test request failed")
-	assert(string(res.Body) == "Hello back", "Wrong body recieved!")
+	assert(string(res.Body) == "Hello back", "Wrong body received!")
 	assert(res.StatusCode == 200, "non 200")
 	assert(res.Attempts == 1, "More than one attempt")
 }
@@ -86,7 +86,7 @@ func TestPostJSON(t *testing.T) {
 	}
 	res, err := req.Send()
 	nilOrPanic(err, "Test request failed")
-	assert(string(res.Body) == "Hello back", "Wrong body recieved!")
+	assert(string(res.Body) == "Hello back", "Wrong body received!")
 	assert(res.StatusCode == 200, "non 200")
 	assert(res.Attempts == 1, "More than one attempt")
 }
@@ -106,7 +106,7 @@ func TestPut(t *testing.T) {
 	req := g.NewRequest("PUT", server.URL, []byte("Hello World"))
 	res, err := req.Send()
 	nilOrPanic(err, "Test request failed")
-	assert(string(res.Body) == "Hello back", "Wrong body recieved!")
+	assert(string(res.Body) == "Hello back", "Wrong body received!")
 	assert(res.StatusCode == 200, "non 200")
 	assert(res.Attempts == 1, "More than one attempt")
 }
@@ -133,7 +133,7 @@ func TestRetries(t *testing.T) {
 	req := g.NewRequest("POST", server.URL, []byte("Hello World"))
 	res, err := req.Send()
 	nilOrPanic(err, "Test request failed")
-	assert(string(res.Body) == "Hello back", "Wrong body recieved!")
+	assert(string(res.Body) == "Hello back", "Wrong body received!")
 	assert(res.StatusCode == 200, "non 200")
 	assert(res.Attempts == 4, "not 4 attempt")
 }
@@ -151,7 +151,7 @@ func TestMaxSize(t *testing.T) {
 	req := g.NewRequest("GET", server.URL, nil)
 	res, err := req.Send()
 	nilOrPanic(err, "Test request failed")
-	assert(string(res.Body) == "1234", "Wrong body recieved!")
+	assert(string(res.Body) == "1234", "Wrong body received!")
 	assert(res.StatusCode == 200, "non 200")
 	assert(res.Attempts == 1, "More than one attempt")
 }
