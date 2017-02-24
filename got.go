@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Logger is a simple loggging interface. This is implicitely implemented by
+// Logger is a simple logging interface. This is implicitly implemented by
 // the builtin log package as well as logrus.
 type Logger interface {
 	Println(v ...interface{})

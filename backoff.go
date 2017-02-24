@@ -14,7 +14,7 @@ type BackOff struct {
 }
 
 // Delay computes the delay for exponential back-off given the number of
-// attempts, tried so far. Use attemps = 0 for the first try, attempts = 1
+// attempts, tried so far. Use attempts = 0 for the first try, attempts = 1
 // for the first retry and attempts = 2 for the second retry...
 func (b BackOff) Delay(attempts int) time.Duration {
 	// Zero attempts means we haven't retried yet, so no delay
@@ -30,10 +30,10 @@ func (b BackOff) Delay(attempts int) time.Duration {
 }
 
 // DefaultBackOff is a simple exponential backoff with delays as follows:
-// 1. 400, range: [300; 500]
-// 2. 100, range: [75; 125]
-// 3. 200, range: [150; 250]
-// 4. 800, range: [600; 1000]
+//   1. 400, range: [300; 500]
+//   2. 100, range: [75; 125]
+//   3. 200, range: [150; 250]
+//   4. 800, range: [600; 1000]
 var DefaultBackOff = &BackOff{
 	DelayFactor:         100 * time.Millisecond,
 	RandomizationFactor: 0.25,
