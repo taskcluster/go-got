@@ -6,8 +6,8 @@
 //
 // Send a request with retries like this:
 //
-//        got := got.New()
-//        response, err := got.NewRequest("PUT", url, []byte("...")).Send()
+//        g := got.New()
+//        response, err := g.NewRequest("PUT", url, []byte("...")).Send()
 //        if err == nil {
 //          // handle error
 //        }
