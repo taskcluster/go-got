@@ -38,8 +38,7 @@ func (g *Got) Delete(url string) *Request {
 
 // WithContext returns a new request with the Context property set
 func (r *Request) WithContext(ctx context.Context) *Request {
-	var result Request
-	result = *r
+	result := *r
 	result.Context = ctx
 	return &result
 }
