@@ -1,6 +1,7 @@
 package got
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 )
@@ -33,6 +34,13 @@ func (g *Got) Patch(url string, body []byte) *Request {
 // Delete returns a new DELETE request with settings from Got
 func (g *Got) Delete(url string) *Request {
 	return g.NewRequest("DELETE", url, nil)
+}
+
+// WithContext returns a new request with the Context property set
+func (r *Request) WithContext(ctx context.Context) *Request {
+	result := *r
+	result.Context = ctx
+	return &result
 }
 
 // JSON sets the body to a JSON object and sets Content-Type to application/json
