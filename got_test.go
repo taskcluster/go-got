@@ -192,3 +192,20 @@ func TestGetWithContext(t *testing.T) {
 	_, err := req.Send()
 	assert(err == context.DeadlineExceeded, "Expected DeadlineExceeded")
 }
+
+func TestGetWithContextShortHand(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert(r.Method == "GET", "Expected GET method")
+		w.WriteHeader(200)
+		w.Write([]byte("Hello back"))
+		time.Sleep(250 * time.Millisecond)
+	}))
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	g := New()
+	_, err := g.NewRequest("GET", server.URL, nil).WithContext(ctx).Send()
+	assert(err == context.DeadlineExceeded, "Expected DeadlineExceeded")
+}
