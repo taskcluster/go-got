@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -224,10 +225,9 @@ func (r *Request) Send() (*Response, error) {
 		// Sleep and take another iteration of the loop
 		delay := backoff.Delay(attempts)
 		if r.Log != nil {
-			r.Log.Println(
-				"Retrying request for: '", r.URL, "' after error: '", "err",
-				"' with delay: ", delay,
-			)
+			r.Log.Println(fmt.Sprintf("Retrying request for: '%s' after error: '%s' with delay: %s",
+				r.URL, err, delay,
+			))
 		}
 		select {
 		case <-ctx.Done():
