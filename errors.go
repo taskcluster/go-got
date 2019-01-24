@@ -12,8 +12,8 @@ type BadResponseCodeError struct {
 
 func (e BadResponseCodeError) Error() string {
 	return fmt.Sprintf(
-		"Non-2xx StatusCode: %d received in %d attempts",
-		e.StatusCode, e.Attempts,
+		"Non-2xx StatusCode: %d received in %d attempts\n%s",
+		e.StatusCode, e.Attempts, string(e.Body),
 	)
 }
 
